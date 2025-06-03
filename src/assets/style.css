@@ -1,0 +1,101 @@
+.box{
+    overflow-y: auto;
+    scrollbar-gutter: stable both-edges;
+    scrollbar-color: rgba(0,0,0,0.1) transparent;
+    word-break: break-all; /* 允许在任意字符间断行 */
+    overflow-wrap: break-word; /* 确保长词会被打断 */
+}
+.completed{
+    text-decoration: line-through;
+    opacity: 0.3;
+}
+.del{
+    color: red;
+    margin-right: 10px;
+    user-select: none;
+    cursor: pointer;
+}
+.item{
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    background-color: rgb(255, 255, 255);
+    width: 80%;
+    height: auto;
+    min-height: 50px;
+    margin:8px auto;
+    padding: 8px 15px;
+    border-radius: 20px;
+    box-shadow: rgba(149,157,168,0.2)0px 8px 20px;
+    word-break: break-all; /* 允许在任意字符间断行 */
+    overflow-wrap: break-word; /* 确保长词会被打断 */
+}
+.add-btn{
+    width: 100px;
+    height: 54px;
+    border-radius: 0 20px 20px 0;
+    line-height: 52px;
+    text-align: center;
+    background:linear-gradient(
+        to right,
+        rgb(113,65,168),
+        rgba(44,114,251,1)
+    );
+    color: #ffff;
+    user-select: none;
+    cursor: pointer;
+}
+.input{
+    border: 1px solid #dfe1e5;
+    outline:none;
+    width: 60%;
+    height: 50px;
+    border-radius: 20px 0 0 20px;
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+.todo-from{
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    margin:20px auto;
+}
+html{
+    background: linear-gradient(to right,
+    rgb(113,65,168),
+    rgba(44,114,251,1)
+    );
+}
+.todo {
+    min-height: 500px; 
+    width: calc(100% - 40px);
+    margin: 40px auto 0;
+    padding: 30px 20px 100px 30px; 
+    box-sizing: border-box;
+    background-color: #fff;
+    border-radius: 20px;
+    height: auto;
+    max-height: calc(100vh - 50px - 30px);
+    overflow-y: auto;
+
+    /* 预留滚动条空间，防止滚动条出现时内容跳动 */
+    scrollbar-gutter: stable both-edges;
+
+    /* 自定义滚动条颜色：滑块为半透明黑色，轨道透明 */
+    scrollbar-color: rgba(0,0,0,0.1) transparent;
+}
+
+.title{
+    text-align: center;
+    font-weight: bold;
+    font-size: 40px;
+    margin-top: 20px;
+}
+
+/* 确保所有文本容器内的内容能正常换行 */
+.name, .item, .todo, .box {
+    word-break: break-all;
+    overflow-wrap: break-word;
+}

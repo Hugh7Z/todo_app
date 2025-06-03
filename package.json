@@ -1,0 +1,33 @@
+{
+  "name": "my-vue-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node tests/runInteractive.js",
+    "test:get": "node tests/getTodoList.test.js",
+    "test:add": "node tests/addTodo.test.js",
+    "test:delete": "node tests/deleteTodo.test.js",
+    "test:update": "node tests/updateTodoStatus.test.js",
+    "test:validation": "node tests/dataValidation.test.js",
+    "test:sign": "node tests/userLogin.test.js",
+    "test:login": "node tests/userRegister.test.js"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "mongoose": "^8.15.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.4.4",
+    "happy-dom": "^17.4.7",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.3"
+  }
+}

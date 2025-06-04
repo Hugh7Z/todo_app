@@ -2,10 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const connectDB = require('./config/db');
+const User = require('./models/User');
+const Todo = require('./models/Todo');
 
 const app = express();
 const PORT = 3001;
 const JWT_SECRET = 'your-secret-key'; // 在实际生产环境中应该使用环境变量
+
+// 连接MongoDB
+connectDB();
 
 // 错误处理中间件
 process.on('uncaughtException', (err) => {
@@ -28,10 +34,6 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
   next();
 });
-
-// 内存数据存储（实际项目中应该使用数据库）
-let users = [];
-let todos = [];
 
 // 测试路由
 app.get('/', (req, res) => {
@@ -68,20 +70,19 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ success: false, message: '用户名和密码不能为空' });
     }
 
-    if (users.find(u => u.username === username)) {
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
       console.log('注册失败: 用户名已存在');
       return res.status(400).json({ success: false, message: '用户名已存在' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = {
-      id: Date.now().toString(),
+    const newUser = await User.create({
       username,
       password: hashedPassword
-    };
+    });
 
-    users.push(newUser);
-    console.log('注册成功:', { id: newUser.id, username: newUser.username });
+    console.log('注册成功:', { id: newUser._id, username: newUser.username });
     res.json({ success: true, message: '注册成功' });
   } catch (error) {
     console.error('注册过程出错:', error);
@@ -95,7 +96,7 @@ app.post('/sign', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    const user = users.find(u => u.username === username);
+    const user = await User.findOne({ username });
     if (!user) {
       console.log('登录失败: 用户不存在');
       return res.status(404).json({ success: false, message: '用户不存在' });
@@ -107,14 +108,14 @@ app.post('/sign', async (req, res) => {
       return res.status(401).json({ success: false, message: '密码错误' });
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET);
-    console.log('登录成功:', { id: user.id, username: user.username });
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET);
+    console.log('登录成功:', { id: user._id, username: user.username });
     res.json({
       success: true,
       code: 200,
       token,
       userData: {
-        id: user.id,
+        id: user._id,
         username: user.username
       }
     });
@@ -125,54 +126,74 @@ app.post('/sign', async (req, res) => {
 });
 
 // 获取待办事项列表
-app.get('/get_list', authenticateToken, (req, res) => {
-  const userTodos = todos.filter(todo => todo.userId === req.user.id);
-  res.json({ list: userTodos });
+app.get('/get_list', authenticateToken, async (req, res) => {
+  try {
+    const userTodos = await Todo.find({ userId: req.user.id });
+    res.json({ list: userTodos });
+  } catch (error) {
+    console.error('获取待办事项列表失败:', error);
+    res.status(500).json({ success: false, message: '获取待办事项列表失败' });
+  }
 });
 
 // 添加待办事项
-app.post('/add_list', authenticateToken, (req, res) => {
-  const { value } = req.body;
-  
-  if (!value || value.trim() === '') {
-    return res.status(400).json({ success: false, message: '待办事项内容不能为空' });
+app.post('/add_list', authenticateToken, async (req, res) => {
+  try {
+    const { value } = req.body;
+    
+    if (!value || value.trim() === '') {
+      return res.status(400).json({ success: false, message: '待办事项内容不能为空' });
+    }
+
+    const newTodo = await Todo.create({
+      value,
+      userId: req.user.id
+    });
+
+    res.json({ success: true, message: '添加成功' });
+  } catch (error) {
+    console.error('添加待办事项失败:', error);
+    res.status(500).json({ success: false, message: '添加待办事项失败' });
   }
-
-  const newTodo = {
-    id: Date.now().toString(),
-    value,
-    isComplete: false,
-    userId: req.user.id
-  };
-
-  todos.push(newTodo);
-  res.json({ success: true, message: '添加成功' });
 });
 
 // 更新待办事项状态
-app.post('/update_list', authenticateToken, (req, res) => {
-  const { id, isComplete } = req.body;
-  
-  const todo = todos.find(t => t.id === id && t.userId === req.user.id);
-  if (!todo) {
-    return res.status(404).json({ success: false, message: '待办事项不存在' });
-  }
+app.post('/update_list', authenticateToken, async (req, res) => {
+  try {
+    const { id, isComplete } = req.body;
+    
+    const todo = await Todo.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
+      { isComplete },
+      { new: true }
+    );
 
-  todo.isComplete = isComplete;
-  res.json({ success: true, message: '更新成功' });
+    if (!todo) {
+      return res.status(404).json({ success: false, message: '待办事项不存在' });
+    }
+
+    res.json({ success: true, message: '更新成功' });
+  } catch (error) {
+    console.error('更新待办事项状态失败:', error);
+    res.status(500).json({ success: false, message: '更新待办事项状态失败' });
+  }
 });
 
 // 删除待办事项
-app.post('/del_list', authenticateToken, (req, res) => {
-  const { id } = req.body;
-  
-  const index = todos.findIndex(t => t.id === id && t.userId === req.user.id);
-  if (index === -1) {
-    return res.status(404).json({ success: false, message: '待办事项不存在' });
-  }
+app.post('/del_list', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.body;
+    
+    const todo = await Todo.findOneAndDelete({ _id: id, userId: req.user.id });
+    if (!todo) {
+      return res.status(404).json({ success: false, message: '待办事项不存在' });
+    }
 
-  todos.splice(index, 1);
-  res.json({ success: true, message: '删除成功' });
+    res.json({ success: true, message: '删除成功' });
+  } catch (error) {
+    console.error('删除待办事项失败:', error);
+    res.status(500).json({ success: false, message: '删除待办事项失败' });
+  }
 });
 
 // 404处理

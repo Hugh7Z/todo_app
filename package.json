@@ -3,19 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "node tests/runInteractive.js",
-    "test:get": "node tests/getTodoList.test.js",
-    "test:add": "node tests/addTodo.test.js",
-    "test:delete": "node tests/deleteTodo.test.js",
-    "test:update": "node tests/updateTodoStatus.test.js",
-    "test:validation": "node tests/dataValidation.test.js",
-    "test:sign": "node tests/userLogin.test.js",
-    "test:login": "node tests/userRegister.test.js"
-  },
   "dependencies": {
     "axios": "^1.9.0",
     "dotenv": "^16.5.0",
